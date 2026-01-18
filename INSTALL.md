@@ -5,18 +5,18 @@
 运行安装脚本：
 
 ```bash
-cd /Users/xiqilin/Documents/Project/Shoplaza/shoplazza-mcps
+cd /path/to/shoplazza-mcps
 ./setup.sh
 ```
 
 ## 手动安装
 
-如果自动安装脚本遇到问题，可以按照以下步骤手动安装：
+如果自动安装脚本遇到问题，可以按照以下步骤手动安装。（以下示例中的 `/path/to/shoplazza-mcps` 请替换为你本地的项目路径。）
 
 ### 1. 安装依赖
 
 ```bash
-cd /Users/xiqilin/Documents/Project/Shoplaza/shoplazza-mcps
+cd /path/to/shoplazza-mcps
 npm install
 ```
 
@@ -55,7 +55,7 @@ npm run build
   "mcpServers": {
     "shoplazza-mcp": {
       "command": "node",
-      "args": ["/Users/xiqilin/Documents/Project/Shoplaza/shoplazza-mcps/build/index.js"],
+      "args": ["/path/to/shoplazza-mcps/build/index.js"],
       "env": {}
     }
   }
@@ -113,7 +113,7 @@ npm run build
 
 **解决方案**:
 ```bash
-chmod +x /Users/xiqilin/Documents/Project/Shoplaza/shoplazza-mcps/build/index.js
+chmod +x /path/to/shoplazza-mcps/build/index.js
 ```
 
 ## 项目结构
