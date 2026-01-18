@@ -167,9 +167,9 @@ interface Example {
 }
 
 // 10. 提取完整组件文档
-export function extractComponentDocumentation(html: string): ComponentDoc {
+export function extractComponentDocumentation(html: string, componentName: string): ComponentDoc {
   return {
-    name: 'spz-accordion',
+    name: componentName,
     ...extractTitleAndDescription(html),
     usage: extractUsage(html),
     properties: extractProperties(html),

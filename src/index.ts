@@ -29,7 +29,7 @@ server.tool("get-lessjs",
     }
 
     const html = await response.text();
-    const docData = extractComponentDocumentation(html);
+    const docData = extractComponentDocumentation(html, componentName);
     return {
       content: [
         {
