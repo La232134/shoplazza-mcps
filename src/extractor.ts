@@ -55,19 +55,18 @@ function extractUsage(html: string): string[] {
   return listItems ? listItems.map(item => extractText(item)) : [];
 }
 
-// 4. 提取属性表格
+// 4. 提取属性表格（兼容 thead/tbody，用 [\s\S] 匹配跨行 tr/td）
 function extractProperties(html: string) {
-  const tableMatch = html.match(/<h2[^>]*>属性<\/h2>.*?<table>(.*?)<\/table>/s);
+  const tableMatch = html.match(/<h2[^>]*>属性<\/h2>[\s\S]*?<table>([\s\S]*?)<\/table>/);
   if (!tableMatch) return [];
-  
-  const rows = tableMatch[1].match(/<tr>(.*?)<\/tr>/g);
+
+  const rows = tableMatch[1].match(/<tr>([\s\S]*?)<\/tr>/g);
   if (!rows || rows.length < 2) return [];
-  
-  // 跳过表头，从第二行开始
+
   return rows.slice(1).map(row => {
-    const cells = row.match(/<td>(.*?)<\/td>/g);
+    const cells = row.match(/<td>([\s\S]*?)<\/td>/g);
     if (!cells || cells.length < 5) return null;
-    
+
     return {
       name: extractText(cells[0]),
       description: extractText(cells[1]),
@@ -91,11 +90,11 @@ function extractMethods(html: string) {
     
     if (!nameMatch || !tableMatch) return null;
     
-    const rows = tableMatch[1].match(/<tr>(.*?)<\/tr>/g);
+    const rows = tableMatch[1].match(/<tr>([\s\S]*?)<\/tr>/g);
     const parameters = rows ? rows.slice(1).map(row => {
-      const cells = row.match(/<td>(.*?)<\/td>/g);
+      const cells = row.match(/<td>([\s\S]*?)<\/td>/g);
       if (!cells || cells.length < 5) return null;
-      
+
       return {
         name: extractText(cells[0]),
         description: extractText(cells[1]),
@@ -129,26 +128,23 @@ function extractExamples(html: string): Example[] {
 }
 
 // 7. 提取事件信息
+// 事件在页面中通常是最后一个大节，后面没有「方法」；事件块可以是 h3+table 或 h3+p
 function extractEvents(html: string) {
-  const eventsSection = html.match(/<h2[^>]*>事件<\/h2>(.*?)<h2[^>]*>方法<\/h2>/s);
+  // 从「事件」到 </article>，兼容事件作为最后一节的页面结构
+  const eventsSection = html.match(/<h2[^>]*>事件<\/h2>([\s\S]*?)<\/article>/);
   if (!eventsSection) return [];
 
-  const eventBlocks = eventsSection[1].match(/<h3[^>]*>(.*?)<\/h3>.*?<table>(.*?)<\/table>/gs);
-
-  return eventBlocks ? eventBlocks.map(block => {
-    const nameMatch = block.match(/<h3[^>]*>(.*?)<\/h3>/);
-    const tableMatch = block.match(/<table>(.*?)<\/table>/s);
-
-    if (!nameMatch || !tableMatch) return null;
-
-    const rows = tableMatch[1].match(/<tr>(.*?)<\/tr>/g);
-    const description = rows ? rows.slice(1).map(row => extractText(row)).join('') : '';
-
-    return {
-      name: extractText(nameMatch[1]),
-      description: description
-    };
-  }).filter(Boolean) : [];
+  // 匹配 h3 后紧跟的 <table> 或 <p>，兼顾「event 对象数据」等 table 与 expand/collapse 等 p 描述
+  const eventBlockRegex = /<h3[^>]*>([\s\S]*?)<\/h3>[\s\S]*?<(?:table|p)(?:\s[^>]*)?>([\s\S]*?)<\/(?:table|p)>/g;
+  const results: { name: string; description: string }[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = eventBlockRegex.exec(eventsSection[1])) !== null) {
+    results.push({
+      name: extractText(m[1]),
+      description: extractText(m[2])
+    });
+  }
+  return results;
 }
 
 // 8. 提取参数信息
